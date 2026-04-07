@@ -1,0 +1,151 @@
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from "react";
+import { authApi } from "../api/authApi";
+
+const AuthContext = createContext(null);
+const STORAGE_KEY = "estate-client-auth";
+const EMPTY_AUTH = { user: null, accessToken: "", refreshToken: "" };
+
+export const AuthProvider = ({ children }) => {
+  const [auth, setAuth] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : EMPTY_AUTH;
+    } catch {
+      return EMPTY_AUTH;
+    }
+  });
+  const [loading, setLoading] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+  }, [auth]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const restoreSession = async () => {
+      if (!auth.refreshToken) {
+        setBootstrapping(false);
+        return;
+      }
+
+      try {
+        let session = auth;
+
+        try {
+          if (!session.accessToken) {
+            throw new Error("Missing access token");
+          }
+
+          const { data } = await authApi.me(session.accessToken);
+          session = { ...session, user: data.user };
+        } catch {
+          const { data: refreshData } = await authApi.refresh(auth.refreshToken);
+          const { data } = await authApi.me(refreshData.accessToken);
+          session = {
+            user: data.user,
+            accessToken: refreshData.accessToken,
+            refreshToken: refreshData.refreshToken,
+          };
+        }
+
+        if (!mounted) {
+          return;
+        }
+
+        setAuth(session);
+      } catch {
+        if (mounted) {
+          setAuth(EMPTY_AUTH);
+        }
+      } finally {
+        if (mounted) {
+          setBootstrapping(false);
+        }
+      }
+    };
+
+    restoreSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const login = async (payload) => {
+    setLoading(true);
+    try {
+      const { data } = await authApi.login(payload);
+      setAuth({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (payload) => {
+    setLoading(true);
+    try {
+      const { data } = await authApi.register(payload);
+      setAuth({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      if (auth.refreshToken) {
+        await authApi.logout(auth.refreshToken);
+      }
+    } finally {
+      setAuth(EMPTY_AUTH);
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    setLoading(true);
+    try {
+      const { data } = await authApi.forgotPassword(email);
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    setLoading(true);
+    try {
+      const { data } = await authApi.resetPassword(token, password);
+      setAuth({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value = {
+    ...auth,
+    loading,
+    bootstrapping,
+    isAuthenticated: Boolean(auth.accessToken),
+    login,
+    register,
+    logout,
+    forgotPassword,
+    resetPassword,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};
