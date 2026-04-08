@@ -1,17 +1,19 @@
-import { env } from "../config/env.js";
+const cacheProvider = process.env.CACHE_PROVIDER || "memory";
+const redisUrl = process.env.REDIS_URL || "";
+const cacheTtlSeconds = Number(process.env.CACHE_TTL_SECONDS || 120);
 
 const memoryStore = new Map();
 let redisClientPromise;
 let redisUnavailableLogged = false;
 
 const createRedisClient = async () => {
-  if (env.cacheProvider !== "redis" || !env.redisUrl) {
+  if (cacheProvider !== "redis" || !redisUrl) {
     return null;
   }
 
   try {
     const { createClient } = await import("redis");
-    const client = createClient({ url: env.redisUrl });
+    const client = createClient({ url: redisUrl });
     client.on("error", () => {});
     await client.connect();
     return client;
@@ -64,7 +66,7 @@ export const cacheService = {
     return getMemoryValue(key);
   },
 
-  async set(key, value, ttlSeconds = env.cacheTtlSeconds) {
+  async set(key, value, ttlSeconds = cacheTtlSeconds) {
     const redis = await getRedisClient();
     if (redis) {
       await redis.set(key, JSON.stringify(value), { EX: ttlSeconds });

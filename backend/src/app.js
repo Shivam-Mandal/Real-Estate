@@ -7,22 +7,24 @@ import { fileURLToPath } from "url";
 
 import apiRoutes from "./routes/index.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
-import { env } from "./config/env.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+const adminUrl = process.env.ADMIN_URL || "http://localhost:5174";
+const nodeEnv = process.env.NODE_ENV || "development";
 
 app.use(
   cors({
-    origin: [env.clientUrl, env.adminUrl],
+    origin: [clientUrl, adminUrl],
     credentials: true,
   }),
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
+app.use(morgan(nodeEnv === "production" ? "combined" : "dev"));
 app.use("/uploads", express.static(path.join(__dirname, "../..", "uploads")));
 
 app.get("/api/health", (_req, res) => {
