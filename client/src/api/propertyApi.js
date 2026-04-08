@@ -6,5 +6,5 @@ export const propertyApi = {
   getFilters: () => api.get("/properties/filters"),
   getBySlug: (slug) => api.get(`/properties/${slug}`),
   getSimilar: (slug) => api.get(`/properties/${slug}/similar`),
-  submitInquiry: (payload) => api.post("/inquiries", payload),
+  submitInquiry: (payload) => api.post("/messages", payload),
 };

@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
-import { authApi } from "../api/authApi";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { authService } from "../services/authService";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "estate-client-auth";
@@ -17,6 +17,8 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
+  const initialAuthRef = useRef(auth);
+  const initialRefreshTokenRef = useRef(auth.refreshToken);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
@@ -26,24 +28,24 @@ export const AuthProvider = ({ children }) => {
     let mounted = true;
 
     const restoreSession = async () => {
-      if (!auth.refreshToken) {
+      if (!initialRefreshTokenRef.current) {
         setBootstrapping(false);
         return;
       }
 
       try {
-        let session = auth;
+        let session = initialAuthRef.current;
 
         try {
           if (!session.accessToken) {
             throw new Error("Missing access token");
           }
 
-          const { data } = await authApi.me(session.accessToken);
+          const data = await authService.me(session.accessToken);
           session = { ...session, user: data.user };
         } catch {
-          const { data: refreshData } = await authApi.refresh(auth.refreshToken);
-          const { data } = await authApi.me(refreshData.accessToken);
+          const refreshData = await authService.refresh(initialRefreshTokenRef.current);
+          const data = await authService.me(refreshData.accessToken);
           session = {
             user: data.user,
             accessToken: refreshData.accessToken,
@@ -77,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (payload) => {
     setLoading(true);
     try {
-      const { data } = await authApi.login(payload);
+      const data = await authService.login(payload);
       setAuth({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
       return data.user;
     } finally {
@@ -88,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (payload) => {
     setLoading(true);
     try {
-      const { data } = await authApi.register(payload);
+      const data = await authService.register(payload);
       setAuth({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
       return data.user;
     } finally {
@@ -99,7 +101,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       if (auth.refreshToken) {
-        await authApi.logout(auth.refreshToken);
+        await authService.logout(auth.refreshToken);
       }
     } finally {
       setAuth(EMPTY_AUTH);
@@ -109,8 +111,7 @@ export const AuthProvider = ({ children }) => {
   const forgotPassword = async (email) => {
     setLoading(true);
     try {
-      const { data } = await authApi.forgotPassword(email);
-      return data;
+      return await authService.forgotPassword(email);
     } finally {
       setLoading(false);
     }
@@ -119,7 +120,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (token, password) => {
     setLoading(true);
     try {
-      const { data } = await authApi.resetPassword(token, password);
+      const data = await authService.resetPassword(token, password);
       setAuth({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
       return data.user;
     } finally {

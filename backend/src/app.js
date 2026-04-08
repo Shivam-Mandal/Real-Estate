@@ -5,11 +5,7 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import authRoutes from "./routes/authRoutes.js";
-import propertyRoutes from "./routes/propertyRoutes.js";
-import inquiryRoutes from "./routes/inquiryRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-import uploadRoutes from "./routes/uploadRoutes.js";
+import apiRoutes from "./routes/index.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import { env } from "./config/env.js";
 
@@ -37,11 +33,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/properties", propertyRoutes);
-app.use("/api/inquiries", inquiryRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/uploads", uploadRoutes);
+app.use("/api", apiRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

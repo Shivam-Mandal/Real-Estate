@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useSeo } from "../hooks/useSeo";
+import { useToast } from "../hooks/useToast";
 
 export const AuthPage = () => {
   const { token } = useParams();
@@ -14,6 +16,12 @@ export const AuthPage = () => {
   const [notice, setNotice] = useState("");
   const [generatedResetToken, setGeneratedResetToken] = useState("");
   const { login, register, loading, forgotPassword, resetPassword } = useAuth();
+  const { showToast } = useToast();
+
+  useSeo({
+    title: token ? "Reset Password | Residence Elite" : "Login or Register | Residence Elite",
+    description: "Sign in, create an account, or recover access to manage saved properties and inquiries.",
+  });
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
@@ -29,6 +37,7 @@ export const AuthPage = () => {
     try {
       if (mode === "login") {
         await login({ email: form.email, password: form.password });
+        showToast({ title: "Welcome back", message: "Your session is ready.", tone: "success" });
         navigate(redirectTarget, { replace: true });
         return;
       }
@@ -41,6 +50,7 @@ export const AuthPage = () => {
           phone: form.phone,
           role: form.role,
         });
+        showToast({ title: "Account created", message: "You're signed in and ready to go.", tone: "success" });
         navigate(redirectTarget, { replace: true });
         return;
       }
@@ -49,6 +59,7 @@ export const AuthPage = () => {
         const data = await forgotPassword(form.email);
         setNotice(data.message);
         setGeneratedResetToken(data.resetToken || "");
+        showToast({ title: "Reset link generated", message: "Use the token below to reset the password.", tone: "info" });
         return;
       }
 
@@ -58,9 +69,11 @@ export const AuthPage = () => {
       }
 
       await resetPassword(token, form.password);
+      showToast({ title: "Password reset", message: "Your password has been updated.", tone: "success" });
       navigate("/account", { replace: true });
     } catch (requestError) {
       setError(requestError?.response?.data?.message || "Authentication failed");
+      showToast({ title: "Authentication failed", message: requestError?.response?.data?.message || "Authentication failed", tone: "error" });
     }
   };
 

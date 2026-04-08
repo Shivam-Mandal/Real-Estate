@@ -1,5 +1,6 @@
 import { User } from "../models/User.js";
 import { verifyAccessToken } from "../services/tokenService.js";
+import { authorize as roleAuthorize } from "./roleMiddleware.js";
 
 export const protect = async (req, res, next) => {
   const header = req.headers.authorization;
@@ -23,9 +24,5 @@ export const protect = async (req, res, next) => {
 };
 
 export const authorize = (...roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role)) {
-    res.status(403);
-    throw new Error("Forbidden");
-  }
-  next();
+  return roleAuthorize(...roles)(req, res, next);
 };

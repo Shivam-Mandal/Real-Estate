@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "agent", "admin"],
+      enum: ["user", "agent", "admin", "vendor"],
       default: "user",
     },
     avatar: {
@@ -33,6 +33,15 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       default: "",
+    },
+    wishlist: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Property",
+        },
+      ],
+      default: [],
     },
     isActive: {
       type: Boolean,
@@ -45,6 +54,38 @@ const userSchema = new mongoose.Schema(
     passwordResetExpiresAt: {
       type: Date,
       default: null,
+    },
+    subscription: {
+      plan: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Plan",
+        default: null,
+      },
+      planName: {
+        type: String,
+        default: "",
+      },
+      listingLimit: {
+        type: Number,
+        default: 0,
+      },
+      featuredListingsAllowed: {
+        type: Boolean,
+        default: false,
+      },
+      status: {
+        type: String,
+        enum: ["inactive", "active", "expired"],
+        default: "inactive",
+      },
+      startsAt: {
+        type: Date,
+        default: null,
+      },
+      endsAt: {
+        type: Date,
+        default: null,
+      },
     },
   },
   { timestamps: true },

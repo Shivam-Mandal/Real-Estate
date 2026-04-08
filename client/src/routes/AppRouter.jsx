@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { PublicLayout } from "../layouts/PublicLayout";
 import { AccountPage } from "../pages/AccountPage";
 import { AuthPage } from "../pages/AuthPage";
+import { ComparePage } from "../pages/ComparePage";
 import { HomePage } from "../pages/HomePage";
 import { PropertiesPage } from "../pages/PropertiesPage";
 import { PropertyDetailsPage } from "../pages/PropertyDetailsPage";
@@ -14,6 +15,7 @@ export const AppRouter = () => (
       <Route path="/" element={<HomePage />} />
       <Route path="/properties" element={<PropertiesPage />} />
       <Route path="/properties/:slug" element={<PropertyDetailsPage />} />
+      <Route path="/compare" element={<ComparePage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/reset-password/:token" element={<AuthPage />} />
       <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />

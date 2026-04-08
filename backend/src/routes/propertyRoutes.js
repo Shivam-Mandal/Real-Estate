@@ -10,6 +10,7 @@ import {
   getPropertyStats,
   getSimilarProperties,
   updateProperty,
+  updatePropertyApproval,
 } from "../controllers/propertyController.js";
 import { authorize, protect } from "../middleware/authMiddleware.js";
 
@@ -20,6 +21,7 @@ router.get("/featured", getFeaturedProperties);
 router.get("/filters", getPropertyFilters);
 router.get("/stats", getPropertyStats);
 router.get("/admin/all", protect, authorize("admin", "agent"), getAdminProperties);
+router.patch("/:id/approval", protect, authorize("admin"), updatePropertyApproval);
 router.get("/:slug", getPropertyBySlug);
 router.get("/:slug/similar", getSimilarProperties);
 router.post("/", protect, authorize("admin", "agent"), createProperty);

@@ -39,6 +39,20 @@ const propertySchema = new mongoose.Schema(
       enum: ["draft", "active", "sold", "rented"],
       default: "active",
     },
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    approvedAt: {
+      type: Date,
+      default: null,
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     price: {
       type: Number,
       required: true,
@@ -75,6 +89,7 @@ const propertySchema = new mongoose.Schema(
       beds: { type: Number, default: 0 },
       baths: { type: Number, default: 0 },
       area: { type: Number, default: 0 },
+      parking: { type: Number, default: 0 },
       garage: { type: Number, default: 0 },
       yearBuilt: { type: Number, default: 2024 },
     },

@@ -1,9 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePropertyTools } from "../context/PropertyToolsContext";
+import { useSeo } from "../hooks/useSeo";
+import { currency } from "../utils/formatters";
 
 export const AccountPage = () => {
   const { user, logout } = useAuth();
+  const { wishlist } = usePropertyTools();
   const navigate = useNavigate();
+
+  useSeo({
+    title: "Your Account | Residence Elite",
+    description: "Manage your profile, review your saved properties, and continue your real-estate journey.",
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -31,6 +40,27 @@ export const AccountPage = () => {
             <div className="rounded-[24px] bg-slate-50 p-5">
               <p className="text-sm text-slate-500">Role</p>
               <p className="mt-2 font-semibold capitalize text-slate-900">{user?.role}</p>
+            </div>
+          </div>
+          <div className="mt-10">
+            <h2 className="font-[Outfit] text-2xl font-semibold text-slate-950">Wishlist</h2>
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              {wishlist.length ? wishlist.map((item) => (
+                <div key={item._id} className="rounded-[24px] bg-slate-50 p-5">
+                  <p className="font-semibold text-slate-900">{item.title}</p>
+                  <p className="mt-2 text-sm text-slate-500">{item.city}, {item.state}</p>
+                  <p className="mt-3 text-sm font-semibold text-slate-900">{currency(item.price, item.listingType)}</p>
+                  {item.slug ? (
+                    <Link to={`/properties/${item.slug}`} className="mt-4 inline-flex text-sm font-semibold text-teal-700">
+                      View property
+                    </Link>
+                  ) : null}
+                </div>
+              )) : (
+                <div className="rounded-[24px] border border-dashed border-slate-300 p-5 text-sm text-slate-500">
+                  No saved properties yet. Use the wishlist buttons on listings to save favorites here.
+                </div>
+              )}
             </div>
           </div>
           <button onClick={handleLogout} className="mt-8 rounded-full bg-slate-950 px-5 py-3 font-semibold text-white transition hover:bg-rose-600">

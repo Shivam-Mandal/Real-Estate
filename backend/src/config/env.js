@@ -15,4 +15,7 @@ export const env = {
   cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || "",
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || "",
+  cacheProvider: process.env.CACHE_PROVIDER || "memory",
+  cacheTtlSeconds: Number(process.env.CACHE_TTL_SECONDS || 120),
+  redisUrl: process.env.REDIS_URL || "",
 };

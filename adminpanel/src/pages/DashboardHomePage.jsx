@@ -1,61 +1,82 @@
+import { Clock3, ReceiptText, UserPlus, Wrench } from "lucide-react";
 import { useEffect, useState } from "react";
 import { adminApi } from "../api/adminApi";
 import { MetricCard } from "../components/dashboard/MetricCard";
-import { PipelineChart } from "../components/dashboard/PipelineChart";
-import { RevenueChart } from "../components/dashboard/RevenueChart";
+import { SimpleAreaChart } from "../components/dashboard/SimpleAreaChart";
 import { useAdminAuth } from "../context/AdminAuthContext";
+
+const activityIcon = {
+  user: UserPlus,
+  property: Wrench,
+  message: ReceiptText,
+};
 
 export const DashboardHomePage = () => {
   const { accessToken } = useAdminAuth();
-  const [dashboard, setDashboard] = useState({ metrics: {}, monthlyRevenue: [], pipeline: [], latestUsers: [] });
+  const [dashboard, setDashboard] = useState({
+    metrics: {},
+    monthlyPackagePurchase: [],
+    registeredUsersByMonth: [],
+    recentActivities: [],
+  });
 
   useEffect(() => {
     adminApi.getDashboard(accessToken).then(({ data }) => setDashboard(data)).catch(() => {});
   }, [accessToken]);
 
   const metrics = [
-    { label: "Users", value: dashboard.metrics.totalUsers || 0, accent: "bg-teal-500" },
-    { label: "Properties", value: dashboard.metrics.totalProperties || 0, accent: "bg-orange-500" },
-    { label: "Inquiries", value: dashboard.metrics.totalInquiries || 0, accent: "bg-blue-500" },
-    { label: "Featured", value: dashboard.metrics.featuredProperties || 0, accent: "bg-slate-900" },
+    { label: "Payment Logs", value: dashboard.metrics.paymentLogsCount || 0, accent: "bg-teal-500" },
+    { label: "Properties", value: dashboard.metrics.propertiesCount || 0, accent: "bg-orange-500" },
+    { label: "Featured", value: dashboard.metrics.featuredPropertiesCount || 0, accent: "bg-amber-500" },
+    { label: "Vendors", value: dashboard.metrics.vendorsCount || 0, accent: "bg-blue-500" },
+    { label: "Users", value: dashboard.metrics.usersCount || 0, accent: "bg-slate-900" },
+    { label: "Subscribers", value: dashboard.metrics.subscribersCount || 0, accent: "bg-emerald-500" },
   ];
 
   return (
     <>
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.26em] text-teal-700">Overview</p>
-        <h1 className="mt-3 font-[Outfit] text-4xl font-semibold text-slate-950">Portfolio health at a glance.</h1>
+        <h1 className="mt-3 font-[Outfit] text-4xl font-semibold text-slate-950">Control center for the admin panel.</h1>
       </div>
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
         {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <RevenueChart data={dashboard.monthlyRevenue} />
-        <PipelineChart data={dashboard.pipeline} />
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <SimpleAreaChart title="Monthly Package Purchase" accent="#0f766e" data={dashboard.monthlyPackagePurchase} />
+        <SimpleAreaChart title="Month-wise Registered Users" accent="#1d4ed8" data={dashboard.registeredUsersByMonth} />
       </div>
+
       <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="font-[Outfit] text-2xl font-semibold text-slate-950">Latest Users</h3>
-        <div className="mt-5 overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="text-slate-500">
-              <tr>
-                <th className="py-3">Name</th>
-                <th className="py-3">Email</th>
-                <th className="py-3">Role</th>
-                <th className="py-3">Joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dashboard.latestUsers.map((user) => (
-                <tr key={user._id} className="border-t border-slate-100">
-                  <td className="py-4 font-medium text-slate-900">{user.name}</td>
-                  <td className="py-4">{user.email}</td>
-                  <td className="py-4 capitalize">{user.role}</td>
-                  <td className="py-4">{new Date(user.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
+            <Clock3 size={18} />
+          </div>
+          <div>
+            <h3 className="font-[Outfit] text-2xl font-semibold text-slate-950">Recent Activities</h3>
+            <p className="text-sm text-slate-500">Latest admin-relevant events from users, properties, and messages.</p>
+          </div>
+        </div>
+        <div className="mt-6 space-y-4">
+          {dashboard.recentActivities.map((activity) => {
+            const Icon = activityIcon[activity.type] || Clock3;
+            return (
+              <div key={activity.id} className="flex items-start gap-4 rounded-[22px] border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-2xl bg-white p-3 text-slate-700 shadow-sm">
+                  <Icon size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-950">{activity.title}</p>
+                  <p className="mt-1 text-sm text-slate-500">{activity.subtitle}</p>
+                </div>
+                <p className="text-xs font-medium text-slate-400">
+                  {new Date(activity.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </>

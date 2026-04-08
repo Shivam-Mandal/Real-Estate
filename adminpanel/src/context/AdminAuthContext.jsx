@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { adminApi } from "../api/adminApi";
 
 const AdminAuthContext = createContext(null);
@@ -17,6 +17,8 @@ export const AdminAuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
+  const initialAuthRef = useRef(auth);
+  const initialRefreshTokenRef = useRef(auth.refreshToken);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
@@ -26,13 +28,13 @@ export const AdminAuthProvider = ({ children }) => {
     let mounted = true;
 
     const restoreSession = async () => {
-      if (!auth.refreshToken) {
+      if (!initialRefreshTokenRef.current) {
         setBootstrapping(false);
         return;
       }
 
       try {
-        let session = auth;
+        let session = initialAuthRef.current;
 
         try {
           if (!session.accessToken) {
@@ -42,7 +44,7 @@ export const AdminAuthProvider = ({ children }) => {
           const { data } = await adminApi.me(session.accessToken);
           session = { ...session, user: data.user };
         } catch {
-          const { data: refreshData } = await adminApi.refresh(auth.refreshToken);
+          const { data: refreshData } = await adminApi.refresh(initialRefreshTokenRef.current);
           const { data } = await adminApi.me(refreshData.accessToken);
           session = {
             user: data.user,

@@ -4,15 +4,31 @@
 :root {
   color-scheme: light;
   --brand-ink: #0f172a;
+  --surface-base: #ffffff;
+  --surface-muted: rgba(255, 255, 255, 0.8);
+  --border-soft: rgba(255, 255, 255, 0.6);
+  --page-background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(194, 65, 12, 0.12), transparent 24%),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 45%, #f8fafc 100%);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --brand-ink: #e5eef7;
+  --surface-base: #0f172a;
+  --surface-muted: rgba(15, 23, 42, 0.82);
+  --border-soft: rgba(51, 65, 85, 0.75);
+  --page-background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.16), transparent 30%),
+    radial-gradient(circle at top right, rgba(251, 146, 60, 0.12), transparent 24%),
+    linear-gradient(180deg, #020617 0%, #0f172a 45%, #111827 100%);
 }
 
 body {
   margin: 0;
   font-family: "Manrope", sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(194, 65, 12, 0.12), transparent 24%),
-    linear-gradient(180deg, #f8fafc 0%, #ffffff 45%, #f8fafc 100%);
+  background: var(--page-background);
   color: var(--brand-ink);
 }
 
@@ -34,13 +50,22 @@ h6 {
 }
 
 .glass-card {
-  @apply rounded-[28px] border border-white/60 bg-white/80 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur;
+  @apply rounded-[28px] shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur;
+  border-color: var(--border-soft);
+  background-color: var(--surface-muted);
 }
 
 .section-title {
-  @apply text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl;
+  @apply text-3xl font-semibold tracking-tight md:text-4xl;
+  color: var(--brand-ink);
 }
 
 .section-copy {
-  @apply max-w-2xl text-sm leading-7 text-slate-600 md:text-base;
+  @apply max-w-2xl text-sm leading-7 md:text-base;
+  color: color-mix(in srgb, var(--brand-ink) 72%, transparent);
+}
+
+.panel-surface {
+  background-color: var(--surface-base);
+  border: 1px solid color-mix(in srgb, var(--brand-ink) 12%, transparent);
 }
